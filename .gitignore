@@ -1,0 +1,23 @@
+# dépendances
+/node_modules
+
+# next.js
+/.next/
+/out/
+/build
+
+# divers
+.DS_Store
+*.pem
+npm-debug.log*
+
+# variables d’environnement : jamais dans Git
+.env*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Bases locales, journaux, sauvegardes et exports : pas dans Git
+/data/

@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+:root { --ink: #1d1b19; --paper: #faf7f2; --accent: #b4532a; --soft: #efe7dc; }
+body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: var(--paper); color: var(--ink); }
+main { max-width: 960px; margin: 0 auto; padding: 0 24px 64px; }
+section { padding: 56px 0; border-bottom: 1px solid var(--soft); }
+h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.05; margin: 0 0 16px; }
+h2 { font-size: 30px; margin: 0 0 12px; }
+p, li, label { font-family: system-ui, sans-serif; font-size: 18px; line-height: 1.55; }
+.eyebrow { font-family: system-ui, sans-serif; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.button, button { display: inline-block; padding: 14px 22px; border: 0; border-radius: 6px; background: var(--ink); color: var(--paper); font: 600 16px system-ui, sans-serif; text-decoration: none; cursor: pointer; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.card { background: #fff; padding: 20px; border-radius: 8px; }
+form { display: grid; gap: 14px; max-width: 520px; }
+input, select, textarea { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #cfc6b8; border-radius: 6px; font: 16px system-ui, sans-serif; }
+.demo-note { font-size: 15px; color: #6b5f52; }

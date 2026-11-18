@@ -12,9 +12,13 @@ export default async function CrmLayout({ children }: Readonly<{ children: React
         <nav className="sidebar-nav" aria-label="Navigation CRM">
           <Link href="/crm">◫ <span>Dashboard</span></Link>
           <Link href="/crm/demandes">▤ <span>Toutes les demandes</span></Link>
+          <Link href="/crm/clients">♙ <span>Clients</span></Link>
+          <Link href="/crm/shootings">◷ <span>Shootings</span></Link>
+          <Link href="/crm/factures">€ <span>Factures</span></Link>
+          {session.user.role === "admin" && <Link href="/crm/utilisateurs">⚙ <span>Utilisateurs</span></Link>}
         </nav>
         <div className="sidebar-bottom">
-          <div className="user-chip"><span className="avatar">{session.user.name.slice(0, 1).toUpperCase()}</span><span>{session.user.name}<small>Gestionnaire</small></span></div>
+          <div className="user-chip"><span className="avatar">{session.user.name.slice(0, 1).toUpperCase()}</span><span>{session.user.name}<small>Accès CRM</small></span></div>
           <SignOutButton />
         </div>
       </aside>

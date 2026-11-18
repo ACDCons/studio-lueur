@@ -68,7 +68,8 @@ async function main() {
   const context = await auth.$context;
   const managerResult = await context.internalAdapter.findUserByEmail(email);
   const manager = managerResult?.user;
-  if (!manager || manager.role !== "admin") {
+  const managerRole = manager && "role" in manager ? manager.role : undefined;
+  if (!manager || managerRole !== "admin") {
     throw new Error("No manager account was found for that e-mail address.");
   }
   if (!(await context.internalAdapter.findCredentialAccount(manager.id))) {

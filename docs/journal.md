@@ -77,6 +77,32 @@
 - Le lien de retour en haut des fiches est plus visible ; l’action d’ouverture dans la liste est un bouton sombre à texte blanc, plus grand que le lien précédent.
 - Aucune date de shooting validée n’a été inventée. Aucun test, build ou parcours navigateur n’a été exécuté pour cette modification.
 
+## Clients, shootings, factures et rôles (2026-11-18)
+
+- À la demande du participant, le CRM distingue maintenant les clients des contacts. Les clients n’ont pas de statut ; ils sont créés depuis le contact déjà lié à une demande lorsque sa facture d’acompte passe à Payée.
+- La demande garde son contact obligatoire. Une demande manuelle peut sélectionner un client, ou une demande existante peut être attribuée à un client depuis sa fiche. Le rattachement est refusé après paiement d’un acompte.
+- Le paiement d’une facture d’acompte crée, dans une transaction, le client et un shooting. La demande peut garder ses statuts propres ; changer son statut n’active pas le flux. Les shootings ont des champs dédiés photo et un état distinct ; leur liste filtre par texte, état et type de séance et se trie par date.
+- Les factures enregistrent type Acompte/Solde, montant en centimes et les états demandés. Le suivi des factures reste manuel : pas d’envoi ni de relance automatique.
+- La nouvelle section `/crm/utilisateurs` gère les rôles non système et affecte des rôles aux comptes existants. Les opérations sont réservées au rôle `admin` contrôlé côté serveur. Les rôles système admin/user ne peuvent pas être supprimés ; le dernier administrateur ne peut pas se retirer l’accès. Les comptes eux-mêmes continuent d’être créés par les commandes locales existantes.
+- Migration Drizzle additive `drizzle/0004_aromatic_morgan_stark.sql`, générée à partir de `src/db/schema.ts`, puis complétée par l’insertion des deux rôles système. Appliquée explicitement à `file:data/local.sqlite` avec `npm run db:migrate` ; pas de remise à zéro ni modification manuelle de lignes.
+- `npm run db:seed-crm-demo` a ajouté des données uniquement aux demandes fictives enrichies 4, 5, 6, 8 et 9, après vérification dans une transaction des identifiants, e-mails, débuts de messages, budgets et absence de données CRM préexistantes. Résultat : 5 clients, 10 factures et 5 shootings fictifs.
+- Une demande avec facture ou shooting ne peut plus être supprimée ; la fiche explique ce blocage afin de préserver ces historiques. Les autres suppressions restent ciblées et ne touchent pas au contact ni à ses autres demandes.
+- Pages et actions ajoutées pour clients, shootings, factures et utilisateurs ; les actions de statut de facture et d’édition de shooting contrôlent la session et le rôle au début de chaque appel. Les autres actions CRM existantes conservent le même contrôle.
+- Le guide Next local sur layouts/pages, mutations serveur, sécurité des données et authentification a été lu avant les changements. `npx tsc --noEmit` a réussi. Aucun test automatisé, build Next ou parcours navigateur n’a été lancé.
+- Drizzle Studio n’a pas pu être observé par l’agent : son port 4983 était déjà occupé et l’outil de contrôle d’interface a échoué à se connecter. Aucune observation ou mesure supplémentaire de l’état global de la base n’est revendiquée.
+
+## Fiche client complète (2026-11-18)
+
+- Le participant a précisé que chaque fiche client doit réunir demandes, shootings et factures, avec création manuelle des trois depuis cette fiche. Un shooting est toujours lié à un client, mais son lien à une demande est facultatif ; le lien facture/client est toujours présent dès qu’un client existe, tandis qu’une facture d’acompte pré-conversion peut d’abord être reliée à la demande seule.
+- Le schéma Drizzle fait désormais porter aux shootings `client_id` obligatoire, `demande_id` facultatif et un intitulé propre. Les factures portent des liens facultatifs vers client et demande, avec une contrainte empêchant une facture sans aucun propriétaire. Un `demande_id` sur un shooting reste unique lorsqu’il existe.
+- Migration additive Drizzle `0005_yummy_terrax.sql` reconstruit les deux tables en conservant les identifiants, dates, montants et états. Elle rattache les anciens shootings aux clients par le contact de leur demande et attribue un intitulé générique basé sur l’identifiant de demande ; les factures existantes reçoivent le client correspondant lorsqu’il existe.
+- Pré-contrôle avant migration, avec `scripts/preflight-shooting-clients.ts` : 5 shootings hérités, 0 client manquant. Migration appliquée à `file:data/local.sqlite` par `npm run db:migrate`.
+- La fiche client affiche maintenant les demandes, shootings et factures, et permet de créer chacun manuellement. Un shooting manuel peut être sans demande ; une facture manuelle peut être sans demande. Les demandes éventuellement choisies sont contrôlées côté serveur et doivent appartenir au client.
+- Le changement de statut d’un acompte lié à une demande vers Payée crée ou retrouve le client, rattache toutes les factures de cette demande à ce client, et crée le shooting lié s’il n’existe pas. Un acompte sans demande ne crée aucun shooting.
+- Vérification ORM en lecture seule via `scripts/check-client-links.ts` : 5 clients, 5 shootings, 10 factures, aucune incohérence de lien et aucune violation de clé étrangère. La base locale a été ciblée explicitement.
+- Les pages de liste des shootings et factures prennent maintenant en charge les liens facultatifs vers une demande. Le tri/filtre des shootings distingue leur origine manuelle ou liée à une demande.
+- Drizzle Studio et le parcours visuel restent non vérifiés ; l’échec d’accès à l’interface et le port 4983 déjà occupé sont consignés dans l’entrée précédente. Aucun test automatisé ni build Next n’a été lancé pour cette évolution.
+
 ## État de travail
 
 - Tous les changements après le commit initial `34861bf` restent non commités, y compris `package-lock.json`.

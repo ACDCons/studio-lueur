@@ -9,7 +9,7 @@ type Request = {
   id: number;
   contactNom: string;
   contactEmail: string;
-  statutContact: string;
+  statutContact: string | null;
   typeSeance: string;
   dateSouhaitee: string | null;
   dateShootingValidee: string | null;
@@ -67,7 +67,7 @@ export default function RequestsTable({ requests }: { requests: Request[] }) {
     return (!search || haystack.includes(search.toLocaleLowerCase("fr")))
       && selectedStatuses.includes(request.statut)
       && selectedTypes.includes(request.typeSeance)
-      && selectedContactStatuses.includes(request.statutContact);
+      && (!request.statutContact || selectedContactStatuses.includes(request.statutContact));
   }), [requests, search, selectedStatuses, selectedTypes, selectedContactStatuses]);
   const ordered = useMemo(() => {
     if (dateOrder === "none") return filtered;
@@ -86,12 +86,12 @@ export default function RequestsTable({ requests }: { requests: Request[] }) {
       <div className="checkbox-filter-row">
         <CheckboxFilter title="Statut demande" values={allStatuses} selected={selectedStatuses} onChange={setSelectedStatuses} />
         <CheckboxFilter title="Type de séance" values={[...TYPES_SEANCE]} selected={selectedTypes} onChange={setSelectedTypes} />
-        <CheckboxFilter title="Statut contact" values={allContactStatuses} selected={selectedContactStatuses} onChange={setSelectedContactStatuses} />
+        <CheckboxFilter title="Statut prospect" values={allContactStatuses} selected={selectedContactStatuses} onChange={setSelectedContactStatuses} />
       </div>
     </div>
     <div className="results-toolbar"><p className="results-count">{filtered.length} résultat{filtered.length > 1 ? "s" : ""}</p><label className="sort-control">Trier par date souhaitée<select aria-label="Trier par date souhaitée" value={dateOrder} onChange={(event) => setDateOrder(event.target.value as typeof dateOrder)}><option value="none">Ordre reçu</option><option value="asc">Plus proche d’abord</option><option value="desc">Plus éloignée d’abord</option></select></label></div>
-    {ordered.length ? <div className="request-table-wrap"><table className="request-table"><thead><tr><th>Contact / projet</th><th>Statut de la demande</th><th>Contact</th><th>Date souhaitée</th><th>Shooting validé</th><th>Budget</th><th /></tr></thead><tbody>
-      {ordered.map((request) => <tr key={request.id}><td><div className="table-person"><strong>{request.contactNom}</strong><small>{request.typeSeance} · #{request.id}</small></div></td><td><span className={`status-badge ${request.statut === "Client (historique)" ? "status-muted" : ""}`}>{request.statut === "Client (historique)" ? "Client · historique" : request.statut}</span></td><td><span className="contact-tag">{request.statutContact}</span></td><td>{request.dateSouhaitee || "À définir"}</td><td>{request.dateShootingValidee || "—"}</td><td>{request.budgetEur == null ? "—" : `${request.budgetEur.toLocaleString("fr-FR")} €`}</td><td className="table-actions"><Link className="open-request-button" href={`/crm/${request.id}`}>Ouvrir la fiche <span aria-hidden="true">→</span></Link><DeleteDemandeForm id={request.id} /></td></tr>)}
+    {ordered.length ? <div className="request-table-wrap"><table className="request-table"><thead><tr><th>Contact / projet</th><th>Statut de la demande</th><th>Relation</th><th>Date souhaitée</th><th>Shooting validé</th><th>Budget</th><th /></tr></thead><tbody>
+      {ordered.map((request) => <tr key={request.id}><td><div className="table-person"><strong>{request.contactNom}</strong><small>{request.typeSeance} · #{request.id}</small></div></td><td><span className={`status-badge ${request.statut === "Client (historique)" ? "status-muted" : ""}`}>{request.statut === "Client (historique)" ? "Client · historique" : request.statut}</span></td><td><span className="contact-tag">{request.statutContact ?? "Client"}</span></td><td>{request.dateSouhaitee || "À définir"}</td><td>{request.dateShootingValidee || "—"}</td><td>{request.budgetEur == null ? "—" : `${request.budgetEur.toLocaleString("fr-FR")} €`}</td><td className="table-actions"><Link className="open-request-button" href={`/crm/${request.id}`}>Ouvrir la fiche <span aria-hidden="true">→</span></Link><DeleteDemandeForm id={request.id} /></td></tr>)}
     </tbody></table></div> : <div className="empty-state"><h2>Aucun résultat</h2><p>Modifiez les filtres ou ajoutez une demande.</p></div>}
   </section>;
 }

@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { contacts, demandes, echanges } from "@/src/db/schema";
+import { clients, contacts, demandes, echanges, factures, shootings } from "@/src/db/schema";
 import { openDatabase } from "@/src/db/client";
 import { requireManager } from "@/src/auth/server";
 import {
@@ -14,19 +14,26 @@ import type { EditFormState, RequestFormState } from "@/src/demandes/form-types"
 import { AUTEURS_ECHANGE, STATUTS_CONTACT } from "@/src/demandes/constants";
 import type { AuteurEchange, StatutContact, StatutDemande, TypeSeance } from "@/src/demandes/constants";
 
-async function persistRequest(values: ReturnType<typeof validateNewRequest>["values"]) {
+async function persistRequest(values: ReturnType<typeof validateNewRequest>["values"], clientId?: number) {
   const { client, db } = await openDatabase();
   const emailNormalise = values.email.trim().toLowerCase();
 
   try {
     await db.transaction(async (tx) => {
-      const [existingContact] = await tx
-        .select({ id: contacts.id })
-        .from(contacts)
-        .where(eq(contacts.emailNormalise, emailNormalise))
-        .limit(1);
+      let contactId: number | undefined;
+      if (clientId) {
+        const [clientRecord] = await tx.select({ contactId: clients.contactId }).from(clients).where(eq(clients.id, clientId)).limit(1);
+        contactId = clientRecord?.contactId;
+        if (!contactId) throw new Error("Client could not be resolved.");
+      } else {
+        const [existingContact] = await tx
+          .select({ id: contacts.id })
+          .from(contacts)
+          .where(eq(contacts.emailNormalise, emailNormalise))
+          .limit(1);
 
-      let contactId = existingContact?.id;
+        contactId = existingContact?.id;
+      }
 
       if (!contactId) {
         const [insertedContact] = await tx
@@ -103,13 +110,19 @@ export async function addInternalDemande(
 ): Promise<RequestFormState> {
   await requireManager();
   const { values, errors } = validateNewRequest(formData);
+  const rawClientId = formData.get("client_id");
+  const clientId = typeof rawClientId === "string" && rawClientId ? Number(rawClientId) : undefined;
+  if (clientId !== undefined && (!Number.isSafeInteger(clientId) || clientId < 1)) {
+    return { status: "error", message: "Choisis un client valide.", values, errors: {} };
+  }
   if (hasErrors(errors)) {
     return { status: "error", message: "Vérifie les champs indiqués.", values, errors };
   }
 
   try {
-    await persistRequest(values);
+    await persistRequest(values, clientId);
     revalidatePath("/crm");
+    revalidatePath("/crm/clients");
     return {
       status: "success",
       message: "La demande a été ajoutée.",
@@ -181,6 +194,8 @@ export async function updateContactStatus(formData: FormData): Promise<void> {
 
   const { client, db } = await openDatabase();
   try {
+    const [clientRecord] = await db.select({ id: clients.id }).from(clients).where(eq(clients.contactId, contactId)).limit(1);
+    if (clientRecord) redirect("/crm/clients");
     await db.update(contacts).set({ statutContact: status as StatutContact }).where(eq(contacts.id, contactId));
   } finally {
     await client.close();
@@ -206,7 +221,7 @@ export async function addExchange(formData: FormData): Promise<void> {
   try {
     const [request] = await db.select({ id: demandes.id }).from(demandes).where(eq(demandes.id, id)).limit(1);
     if (!request) redirect("/crm/demandes");
-    await db.insert(echanges).values({ demandeId: id, auteur: author as AuteurEchange, contenu });
+    await db.insert(echanges).values({ demandeId: id, auteur: author as AuteurEchange, contenu: content });
   } finally {
     await client.close();
   }
@@ -221,6 +236,9 @@ export async function deleteDemande(formData: FormData): Promise<void> {
 
   const { client, db } = await openDatabase();
   try {
+    const [invoice] = await db.select({ id: factures.id }).from(factures).where(eq(factures.demandeId, id)).limit(1);
+    const [shooting] = await db.select({ id: shootings.id }).from(shootings).where(eq(shootings.demandeId, id)).limit(1);
+    if (invoice || shooting) redirect(`/crm/${id}?suppression=liee`);
     await db.delete(demandes).where(eq(demandes.id, id));
   } finally {
     await client.close();

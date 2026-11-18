@@ -10,6 +10,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed-sample": "tsx scripts/seed-sample.ts",
+    "db:seed-crm-demo": "tsx scripts/seed-crm-demo.ts",
     "db:studio": "drizzle-kit studio --host 127.0.0.1",
     "auth:generate-schema": "auth generate --config src/auth.ts --adapter drizzle --dialect sqlite --output src/db/auth-schema.ts --yes",
     "auth:create-manager": "tsx scripts/create-local-account.ts manager",

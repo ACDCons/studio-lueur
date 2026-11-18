@@ -3,11 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
-    "start": "next start"
+    "start": "next start --hostname 127.0.0.1",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed-sample": "tsx scripts/seed-sample.ts",
+    "db:studio": "drizzle-kit studio --host 127.0.0.1",
+    "auth:generate-schema": "auth generate --config src/auth.ts --adapter drizzle --dialect sqlite --output src/db/auth-schema.ts --yes",
+    "auth:create-manager": "tsx scripts/create-local-account.ts manager",
+    "auth:create-user": "tsx scripts/create-local-account.ts user"
   },
   "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.7.25",
+    "@libsql/client": "^0.18.0",
+    "better-auth": "^1.7.25",
+    "drizzle-orm": "^0.45.4",
     "next": "^16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -17,7 +29,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "auth": "^1.7.25",
+    "drizzle-kit": "^0.31.11",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

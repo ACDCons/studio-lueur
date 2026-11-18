@@ -1,28 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
+import { submitPublicDemande } from "./actions/demandes";
+import RequestFields from "./components/RequestFields";
+import { emptyRequestFormState } from "@/src/demandes/form-types";
 
 export default function DemandeForm() {
-  const [message, setMessage] = useState("");
+  const [state, formAction, isPending] = useActionState(submitPublicDemande, emptyRequestFormState);
+
   return (
-    <form onSubmit={(event) => {
-      event.preventDefault();
-      setMessage("Démonstration : rien n’est encore enregistré.");
-    }}>
-      <label>Nom<input name="nom" autoComplete="name" required /></label>
-      <label>E-mail<input name="email" type="email" autoComplete="email" required /></label>
-      <label>Type de séance
-        <select name="type_seance" required defaultValue="">
-          <option value="" disabled>Choisir…</option>
-          <option>Mariage</option>
-          <option>Portrait</option>
-          <option>Entreprise</option>
-        </select>
-      </label>
-      <label>Date souhaitée (facultatif)<input name="date_souhaitee" type="date" /></label>
-      <label>Votre projet<textarea name="message" rows={5} required /></label>
-      <button type="submit">Envoyer la demande</button>
-      <p className="demo-note" role="status">{message || "Démonstration : rien n’est encore enregistré."}</p>
+    <form action={formAction}>
+      <RequestFields idPrefix="public" values={state.values} errors={state.errors} />
+      <button type="submit" disabled={isPending}>{isPending ? "Envoi…" : "Envoyer la demande"}</button>
+      <p className="demo-note">Exercice local : utilise uniquement des données fictives pour le moment.</p>
+      <p className="demo-note">Votre nom et votre e-mail serviront uniquement à répondre à votre demande. La durée de conservation reste à confirmer.</p>
+      <p className="demo-note" role={state.status === "error" ? "alert" : "status"} aria-live="polite">
+        {state.message || "Merci de renseigner les champs obligatoires."}
+      </p>
     </form>
   );
 }

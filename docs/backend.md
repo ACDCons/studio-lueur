@@ -2,9 +2,9 @@
 
 ## Environnement
 
-Le projet reste en développement local, avec des données fictives. `npm run dev` et `npm start` écoutent sur `127.0.0.1`. Aucun tunnel, compte cloud ou déploiement n’a été créé.
+Le projet et sa base locale restent documentés dans ce guide. La configuration Vercel/Turso est en cours côté participant ; aucune ressource distante n’a été inspectée ou modifiée par l’agent.
 
-La base utilise `@libsql/client` et Drizzle. `DATABASE_URL` est lu par le client ; sans valeur, le chemin `file:data/local.sqlite` est résolu depuis la racine du projet. Le fichier de base est ignoré par Git sous `data/`.
+La base utilise @libsql/client et Drizzle. En local, DATABASE_URL explicite permet de garder le chemin file:data/local.sqlite. En développement, TURSO_DATABASE_URL est ignoré par défaut pour préserver la base locale. Sur Vercel, la configuration utilise TURSO_DATABASE_URL et exige TURSO_AUTH_TOKEN pour toute URL distante. Le fichier local est ignoré par Git sous data/.
 
 Better Auth utilise `BETTER_AUTH_URL` et `BETTER_AUTH_SECRET`. Le fichier `.env.example` nomme ces variables sans valeur secrète. Le participant doit saisir une clé stable d’au moins 32 caractères dans son environnement local avant de se connecter ou de créer des comptes. Le code de l’application refuse une clé absente ou trop courte sans l’afficher.
 
@@ -83,3 +83,58 @@ Le bloc reste local et n’a pas été publié. `npx tsc --noEmit` a réussi ; l
 - `npm run db:seed-crm-demo` a ajouté des exemples explicitement fictifs (5 clients, 10 factures et 5 shootings) aux demandes enrichies 4, 5, 6, 8 et 9. Le script s’arrête si une ligne attendue diffère ou si des données CRM sont déjà présentes sur une demande ciblée.
 - Le pré-contrôle avant `0005` a observé 5 shootings hérités et 0 shooting sans client résolvable. Après migration, la vérification ORM a observé 5 clients, 5 shootings et 10 factures, sans lien client/demande incohérent ni violation de clé étrangère.
 - La vérification TypeScript `npx tsc --noEmit` a réussi. Drizzle Studio n’a pas pu être ouvert par l’agent : le port local 4983 était déjà occupé et l’outil de contrôle d’interface n’a pas pu se connecter. La base a été ciblée explicitement par les commandes de migration et d’exemples ; aucune autre base n’a été ouverte.
+
+
+## Préparation Vercel et Turso — en préparation, non déployée
+
+Aucune ressource distante n’a été inspectée ni modifiée. Le projet Vercel, la base Turso cible, ses éventuelles données et son historique de migrations restent à identifier. Aucune valeur de .env.local n’a été lue. La base locale data/local.sqlite n’a pas été modifiée.
+
+### Configuration constatée
+
+La connexion partagée est utilisée par le CRM, Better Auth et le script de migrations. Sur Vercel, le runtime est identifié par VERCEL=1 et la cible prioritaire est TURSO_DATABASE_URL ; si cette URL manque, la configuration échoue au lieu d’utiliser silencieusement le fichier local. En développement local, TURSO_DATABASE_URL est ignoré par défaut : DATABASE_URL explicite ou data/local.sqlite sont utilisés, ce qui préserve l’isolation. Pour toute URL distante, TURSO_AUTH_TOKEN est obligatoire. Un DATABASE_URL explicite peut servir à une commande locale d’administration distante, après vérification de la cible.
+
+La fiche Turso de Vercel indique que l’intégration fournit TURSO_DATABASE_URL et TURSO_AUTH_TOKEN et montre leur utilisation avec createClient. La documentation Drizzle/libSQL documente aussi le passage du jeton authToken au client. Voir [l’intégration Turso sur Vercel](https://vercel.com/marketplace/tursocloud/database), [la connexion libSQL de Drizzle](https://orm.drizzle.team/docs/get-started/turso-new) et [les variables d’environnement Vercel](https://vercel.com/docs/environment-variables).
+
+### Variables à préparer
+
+| Nom | Usage | Qui la fournit |
+|---|---|---|
+| DATABASE_URL | Surcharge explicite de l’URL de base en local ; par défaut elle pointe vers file:data/local.sqlite. Vercel ignore cette variable et exige TURSO_DATABASE_URL. | Fichier local d’exemple ; ne pas créer cette variable sur Vercel |
+| TURSO_DATABASE_URL | Adresse de la base distante sélectionnée | Intégration Turso installée dans le projet Vercel |
+| TURSO_AUTH_TOKEN | Jeton d’accès à la base distante | Intégration Turso ; secret à ne jamais afficher |
+| BETTER_AUTH_URL | Origine publique finale du site | À saisir par le participant dans Vercel |
+| BETTER_AUTH_SECRET | Secret de session stable, propre à la production et d’au moins 32 caractères | À générer et saisir par le participant dans Vercel |
+
+Vérifier le projet Vercel auquel l’intégration est liée et la base qu’elle désigne avant toute migration. Les valeurs de TURSO_DATABASE_URL, TURSO_AUTH_TOKEN et BETTER_AUTH_SECRET ne sont ni lues ni affichées par l’agent.
+
+### Migrations locales à comparer avec la cible
+
+Le journal Drizzle du dépôt comprend six migrations :
+
+1. 0000_foamy_alice.sql — tables initiales contacts et demandes.
+2. 0001_special_quasar.sql — tables Better Auth user, session, account et verification.
+3. 0002_sticky_gauntlet.sql — évolutions CRM des contacts et demandes, statuts, budget, motifs de refus et échanges.
+4. 0003_broken_unus.sql — date de shooting validée sur les demandes.
+5. 0004_aromatic_morgan_stark.sql — clients, shootings, factures et rôles.
+6. 0005_yummy_terrax.sql — lien client obligatoire des shootings et associations client/demande des factures.
+
+La cible doit d’abord être examinée en lecture seule. Comparer son journal de migrations aux six fichiers ci-dessus ; conserver toutes ses lignes et ne lancer aucune remise à zéro. N’appliquer que les migrations manquantes après confirmation de la cible et de la sauvegarde. Le script npm run db:migrate passe par la configuration partagée ci-dessus.
+
+### Comptes et statuts
+
+- Compte A : gestionnaire, rôle Better Auth admin, accès CRM.
+- Compte B : utilisateur standard, rôle Better Auth user, sans accès CRM.
+
+Le participant choisit les identités et saisit les mots de passe dans une invite masquée. Les scripts de création de comptes existants sont destinés à l’administration locale ; il faut préparer et vérifier une opération explicite qui cible Turso avant de créer les comptes en ligne. Le nombre de comptes présents sur la cible est inconnu tant qu’elle n’a pas été inspectée.
+
+Les quatre statuts initiaux Nouveau, En discussion, Client et Perdu sont historiques. Les états actifs des demandes sont Nouveau, En Discussion, Acompte versé, Shooting proche, Retouche en cours, Livrée, Payée, Refusée et Annulée, avec Client (historique) pour préserver les anciennes données. Ce sont des valeurs permises par les contraintes des migrations, pas des lignes à créer manuellement. Les états des shootings et des factures sont également définis dans le schéma.
+
+### Ordre avant la mise en ligne
+
+1. Vérifier en lecture seule le projet Vercel, l’intégration et la base cible ; confirmer que c’est la bonne base et relever son état sans exposer de valeur de variable.
+2. Comparer son journal de migrations à celui du dépôt et établir la sauvegarde requise sans modifier les lignes.
+3. Si l’état est cohérent, appliquer seulement les migrations manquantes, Better Auth comprise, sans effacer de données.
+4. Créer les comptes A et B avec le participant et vérifier leurs rôles côté serveur.
+5. Lancer le déploiement Vercel ; vérifier ensuite la session et le CRM.
+
+Aucune de ces opérations distantes n’a été effectuée. Cette préparation ne prouve pas que la cible, ses variables ou ses migrations en ligne ont été vérifiées.

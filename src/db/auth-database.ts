@@ -1,10 +1,10 @@
 import { createClient } from "@libsql/client/node";
 import { drizzle } from "drizzle-orm/libsql/node";
 import * as schema from "./schema";
-import { resolveDatabaseUrl } from "./url";
+import { getDatabaseConnectionConfig } from "./url";
 
 const client = createClient({
-  url: resolveDatabaseUrl(process.env.DATABASE_URL, process.cwd()),
+  ...getDatabaseConnectionConfig(process.cwd()),
   concurrency: 1,
 });
 

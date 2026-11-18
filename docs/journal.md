@@ -105,5 +105,8 @@
 
 ## État de travail
 
-- Tous les changements après le commit initial `34861bf` restent non commités, y compris `package-lock.json`.
-- `tsconfig.json` conserve la modification apparue précédemment (`jsx: react-jsx` et `.next/dev/types/**/*.ts` dans `include`) ; elle n’a pas été retouchée dans le bloc 3.
+- Le commit courant est ad9c179 (feat: add client-centered CRM workflows), poussé sur origin/master. Avant la préparation actuelle, le dépôt était aligné avec origin/master.
+- Les documents Markdown et .env.example ont été actualisés ; le client libSQL du CRM, Better Auth et du script de migrations utilise maintenant une configuration commune compatible avec les variables de l’intégration Turso Vercel.
+- En local, la cible reste data/local.sqlite par défaut. Sur Vercel, le code utilise TURSO_DATABASE_URL et TURSO_AUTH_TOKEN ; les valeurs ne sont pas lues ni affichées.
+- Les 11 fichiers préparés sont commités localement ; aucun push n’a été effectué. Aucune base SQLite ou variable secrète n’est incluse.
+- Aucune opération distante n’a été exécutée par l’agent : le projet Vercel, la base cible, les données en ligne et l’historique de migrations n’ont pas été inspectés. La base locale n’a pas été modifiée.

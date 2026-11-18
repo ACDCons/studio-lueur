@@ -22,3 +22,13 @@
 - Bloc 1 : demande à l’IA (besoin puis technique), plan validé, base, migrations et deux demandes fictives. Bloc 2 : réception du formulaire et CRM (ajout, lecture, modification, suppression). Faire évoluer les tables par migration additive si nécessaire.
 - La suppression confirmée vise une seule demande ; aucune cascade vers le contact ou les autres demandes. Pas de suppression de contact dans la V1.
 - Après Better Auth, contrôler aussi création interne et suppression dans chaque action privée.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

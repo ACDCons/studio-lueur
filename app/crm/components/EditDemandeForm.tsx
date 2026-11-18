@@ -2,8 +2,9 @@
 
 import { useActionState } from "react";
 import { updateDemande } from "@/app/actions/demandes";
-import { STATUTS_DEMANDE, TYPES_SEANCE } from "@/src/demandes/constants";
+import { RAISONS_REFUS, STATUTS_DEMANDE, TYPES_SEANCE } from "@/src/demandes/constants";
 import { emptyEditFormState, type EditValues } from "@/src/demandes/form-types";
+import { useState } from "react";
 
 export default function EditDemandeForm({ initialValues }: { initialValues: EditValues }) {
   const [state, formAction, isPending] = useActionState(
@@ -11,6 +12,7 @@ export default function EditDemandeForm({ initialValues }: { initialValues: Edit
     emptyEditFormState(initialValues),
   );
   const { values, errors } = state;
+  const [selectedStatus, setSelectedStatus] = useState(values.statut);
 
   return (
     <form action={formAction}>
@@ -25,15 +27,32 @@ export default function EditDemandeForm({ initialValues }: { initialValues: Edit
         <input id="edit-date" name="date_souhaitee" type="date" defaultValue={values.date_souhaitee} />
         {errors.date_souhaitee && <small className="form-error">{errors.date_souhaitee}</small>}
       </label>
+      <label htmlFor="edit-shooting-date">Date de shooting validée
+        <input id="edit-shooting-date" name="date_shooting_validee" type="date" defaultValue={values.date_shooting_validee} />
+        {errors.date_shooting_validee && <small className="form-error">{errors.date_shooting_validee}</small>}
+      </label>
       <label htmlFor="edit-message">Message
         <textarea id="edit-message" name="message" rows={5} maxLength={5000} required defaultValue={values.message} />
         {errors.message && <small className="form-error">{errors.message}</small>}
       </label>
       <label htmlFor="edit-status">Statut
-        <select id="edit-status" name="statut" required defaultValue={values.statut}>
+        <select id="edit-status" name="statut" required value={selectedStatus} onChange={(event) => setSelectedStatus(event.target.value)}>
           {STATUTS_DEMANDE.map((status) => <option key={status} value={status}>{status}</option>)}
+          {values.statut === "Client (historique)" && <option value="Client (historique)">Client (ancien statut)</option>}
         </select>
         {errors.statut && <small className="form-error">{errors.statut}</small>}
+      </label>
+      {selectedStatus === "Refusée" && <label htmlFor="edit-reason">Motif du refus
+        <select id="edit-reason" name="raison_refus" required defaultValue={values.raison_refus}>
+          <option value="" disabled>Choisir un motif</option>
+          {RAISONS_REFUS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+        </select>
+        {errors.raison_refus && <small className="form-error">{errors.raison_refus}</small>}
+      </label>}
+      {selectedStatus !== "Refusée" && <input type="hidden" name="raison_refus" value="" />}
+      <label htmlFor="edit-budget">Budget client (€)
+        <input id="edit-budget" name="budget_eur" type="number" min="0" step="1" defaultValue={values.budget_eur} />
+        {errors.budget_eur && <small className="form-error">{errors.budget_eur}</small>}
       </label>
       <label htmlFor="edit-note">Note
         <textarea id="edit-note" name="note" rows={3} maxLength={5000} defaultValue={values.note} />

@@ -54,6 +54,29 @@
 - `npx tsc --noEmit` a réussi. Aucun tunnel ou déploiement n’a été lancé ; le parcours de connexion n’a pas été essayé dans un navigateur, aucun build Next ni aucune suite de tests n’ont été lancés.
 - `npm audit --omit=dev` signale 4 vulnérabilités modérées dans `esbuild` via `@esbuild-kit` et `drizzle-kit`. `npm audit fix --force` propose une rétrogradation majeure vers Drizzle Kit 0.18.1 ; aucun correctif automatique n’a été appliqué.
 
+## Back office CRM (2026-11-18)
+
+- Ajout d’un back office local avec menu latéral, dashboard, liste filtrable et fiche de demande. Les pages CRM restent protégées par `requireManager()` au niveau du layout ; les actions privées contrôlent aussi la session et le rôle.
+- Ajout de la connexion `/saucisse-connection`, avec champ utilisateur compatible avec `Antho`, masque visuel en emojis saucisse et bouton d’affichage. Le compte utilise l’adresse e-mail fournie dans Better Auth.
+- Migration Drizzle additive `0002_sticky_gauntlet.sql`, générée par Drizzle puis ajustée pour préserver les valeurs préexistantes pendant la reconstruction de la table demandes. Elle ajoute les statuts de contact, les statuts de demande, le budget, les motifs de refus et l’historique d’échanges. La commande `npm run db:migrate` a ciblé explicitement `file:data/local.sqlite` et s’est terminée sans erreur.
+- Conversion des statuts préexistants : Nouveau reste Nouveau ; En discussion devient En Discussion ; les demandes Client sont conservées sous `Client (historique)` et leur contact passe à Client ; Perdu devient Refusée sans motif. Les autres contacts reçoivent le statut Lead par défaut.
+- Aucune ligne de budget ou d’échange n’a été inventée. Le graphique des prix utilise un exemple fictif clairement signalé ; les autres totaux lisent les demandes locales.
+- Aucun compte gestionnaire n’a été créé. Le CLI d’administration existant demande le mot de passe dans une invite masquée ; l’agent n’a pas lu `.env.local` ni transmis le mot de passe dans une commande.
+- Aucun test, build Next ou vérification navigateur n’a été lancé. Le back office reste local ; aucune publication ni tunnel n’a été effectué.
+- Après retour sur une erreur `tsx` en format CommonJS, le flux de `scripts/create-local-account.ts` a été encapsulé dans `main()` pour supprimer les `await` au niveau supérieur. L’insertion directe dans les tables Better Auth n’est pas utilisée ; la création doit passer par le CLI Better Auth.
+- Diagnostic de connexion : le compte gestionnaire existe avec le rôle admin et un credential enregistré. Le endpoint de session renvoyait `500` avec une clé locale trop courte. Une clé aléatoire de 32 caractères a été écrite dans `.env.development.local` sans l’afficher ; après redémarrage, `/api/auth/get-session` répond `200`. Le CLI de création charge désormais l’environnement `development` pour suivre la priorité des variables de Next dev. La connexion avec le mot de passe n’a pas été effectuée par l’agent.
+- Ajout de `npm run auth:reset-manager-password` pour réinitialiser localement le mot de passe d’un compte `admin` via le hachage et l’adaptateur Better Auth, sans SQL manuel. Le nouveau mot de passe est saisi en mode terminal sans écho ; les sessions existantes sont révoquées.
+- Correction après la première tentative : Better Auth renvoie l’utilisateur dans `findUserByEmail(...).user`. Le script vérifiait le rôle sur l’enveloppe de résultat et s’arrêtait avant toute modification. La recherche cible maintenant la propriété utilisateur correctement.
+- Diagnostic de connexion : les requêtes depuis `http://localhost:3000` étaient refusées parce que seule l’origine loopback `127.0.0.1` était configurée. `src/auth.ts` fait maintenant confiance explicitement aux deux origines locales.
+
+## Dates de séance et tri CRM (2026-11-18)
+
+- Migration additive Drizzle `0003_broken_unus.sql` appliquée explicitement à `data/local.sqlite`. Elle ajoute `demandes.date_shooting_validee`, facultative ; aucune date historique n’a été rétro-remplie.
+- La fiche affiche et permet d’éditer la date validée. La liste montre les deux dates et peut être triée par date souhaitée croissante ou décroissante, les dates manquantes restant à la fin.
+- Les demandes fictives existantes 4, 5, 6, 8 et 9 ont reçu un contexte de projet ajouté à la suite du message d’origine et des budgets respectifs de 1 850 €, 480 €, 1 250 €, 390 € et 1 100 €. Le script `scripts/enrich-demo-requests.ts` vérifie les identifiants, e-mails fictifs, messages d’origine et budgets vides dans une transaction avant toute mise à jour.
+- Le lien de retour en haut des fiches est plus visible ; l’action d’ouverture dans la liste est un bouton sombre à texte blanc, plus grand que le lien précédent.
+- Aucune date de shooting validée n’a été inventée. Aucun test, build ou parcours navigateur n’a été exécuté pour cette modification.
+
 ## État de travail
 
 - Tous les changements après le commit initial `34861bf` restent non commités, y compris `package-lock.json`.

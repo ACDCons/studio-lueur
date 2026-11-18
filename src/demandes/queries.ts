@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { contacts, demandes } from "@/src/db/schema";
+import { contacts, demandes, echanges } from "@/src/db/schema";
 import { openDatabase } from "@/src/db/client";
 
 export async function listDemandes() {
@@ -11,12 +11,16 @@ export async function listDemandes() {
         contactId: demandes.contactId,
         contactNom: contacts.nom,
         contactEmail: contacts.email,
+        statutContact: contacts.statutContact,
         typeSeance: demandes.typeSeance,
         dateSouhaitee: demandes.dateSouhaitee,
+        dateShootingValidee: demandes.dateShootingValidee,
         message: demandes.message,
         statut: demandes.statut,
         note: demandes.note,
         prochaineAction: demandes.prochaineAction,
+        budgetEur: demandes.budgetEur,
+        raisonRefus: demandes.raisonRefus,
         createdAt: demandes.createdAt,
       })
       .from(demandes)
@@ -36,19 +40,29 @@ export async function getDemande(id: number) {
         contactId: demandes.contactId,
         contactNom: contacts.nom,
         contactEmail: contacts.email,
+        statutContact: contacts.statutContact,
         typeSeance: demandes.typeSeance,
         dateSouhaitee: demandes.dateSouhaitee,
+        dateShootingValidee: demandes.dateShootingValidee,
         message: demandes.message,
         statut: demandes.statut,
         note: demandes.note,
         prochaineAction: demandes.prochaineAction,
+        budgetEur: demandes.budgetEur,
+        raisonRefus: demandes.raisonRefus,
         createdAt: demandes.createdAt,
       })
       .from(demandes)
       .innerJoin(contacts, eq(demandes.contactId, contacts.id))
       .where(eq(demandes.id, id))
       .limit(1);
-    return record;
+    if (!record) return undefined;
+    const historique = await db
+      .select({ id: echanges.id, auteur: echanges.auteur, contenu: echanges.contenu, createdAt: echanges.createdAt })
+      .from(echanges)
+      .where(eq(echanges.demandeId, id))
+      .orderBy(desc(echanges.createdAt), desc(echanges.id));
+    return { ...record, echanges: historique };
   } finally {
     await client.close();
   }

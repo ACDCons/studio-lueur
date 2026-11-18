@@ -44,7 +44,17 @@ type SeedRequest = {
 };
 
 const types: TypeSeance[] = ["Mariage", "Portrait", "Entreprise"];
-const statuses: StatutDemande[] = ["Nouveau", "En discussion", "Client", "Perdu"];
+const statuses: StatutDemande[] = [
+  "Nouveau",
+  "En Discussion",
+  "Acompte versé",
+  "Shooting proche",
+  "Retouche en cours",
+  "Livrée",
+  "Payée",
+  "Refusée",
+  "Annulée",
+];
 const messages: Record<TypeSeance, string> = {
   Mariage: "Projet de mariage fictif pour une galerie de démonstration.",
   Portrait: "Projet de portrait fictif pour une galerie de démonstration.",
@@ -69,7 +79,7 @@ const requests: SeedRequest[] = clients.map((_, index) => {
 requests.push({
   clientIndex: 6,
   typeSeance: "Portrait",
-  statut: "En discussion",
+  statut: "En Discussion",
   dateSouhaitee: "2027-09-11",
   message: "Deuxième demande fictive liée au même client de démonstration.",
   note: "Préférence de séance fictive notée.",

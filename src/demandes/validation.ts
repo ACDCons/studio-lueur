@@ -1,5 +1,5 @@
 import "server-only";
-import { STATUTS_DEMANDE, TYPES_SEANCE } from "./constants";
+import { RAISONS_REFUS, STATUTS_DEMANDE_STOCKES, TYPES_SEANCE } from "./constants";
 import type { EditFormState, EditValues, RequestFormState, RequestValues } from "./form-types";
 
 export type { EditFormState, EditValues, RequestFormState, RequestValues } from "./form-types";
@@ -57,8 +57,11 @@ export function validateEditRequest(formData: FormData) {
     id: field(formData, "demande_id"),
     type_seance: field(formData, "type_seance"),
     date_souhaitee: field(formData, "date_souhaitee"),
+    date_shooting_validee: field(formData, "date_shooting_validee"),
     message: field(formData, "message"),
     statut: field(formData, "statut"),
+    raison_refus: field(formData, "raison_refus"),
+    budget_eur: field(formData, "budget_eur"),
     note: field(formData, "note"),
     prochaine_action: field(formData, "prochaine_action"),
   };
@@ -72,11 +75,29 @@ export function validateEditRequest(formData: FormData) {
   if (!isValidDate(values.date_souhaitee)) {
     errors.date_souhaitee = "Indique une date valide.";
   }
+  if (!isValidDate(values.date_shooting_validee)) {
+    errors.date_shooting_validee = "Indique une date de shooting validée valide.";
+  }
   if (!values.message || values.message.length > 5000) {
     errors.message = "Le message doit contenir de 1 à 5 000 caractères.";
   }
-  if (!(STATUTS_DEMANDE as readonly string[]).includes(values.statut)) {
+  if (!(STATUTS_DEMANDE_STOCKES as readonly string[]).includes(values.statut)) {
     errors.statut = "Choisis un statut proposé.";
+  }
+  if (values.raison_refus && !(RAISONS_REFUS as readonly string[]).includes(values.raison_refus)) {
+    errors.raison_refus = "Choisis un motif de refus proposé.";
+  }
+  if (values.statut === "Refusée" && !values.raison_refus) {
+    errors.raison_refus = "Choisis un motif pour une demande refusée.";
+  }
+  if (values.statut !== "Refusée" && values.raison_refus) {
+    errors.raison_refus = "Le motif de refus s'applique uniquement au statut Refusée.";
+  }
+  if (values.budget_eur) {
+    const budget = Number(values.budget_eur);
+    if (!/^\d+$/.test(values.budget_eur) || !Number.isSafeInteger(budget)) {
+      errors.budget_eur = "Indique un budget en euros sous forme de nombre entier positif.";
+    }
   }
   if (values.note.length > 5000) errors.note = "La note ne peut pas dépasser 5 000 caractères.";
   if (values.prochaine_action.length > 500) {

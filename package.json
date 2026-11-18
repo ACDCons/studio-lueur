@@ -13,7 +13,9 @@
     "db:studio": "drizzle-kit studio --host 127.0.0.1",
     "auth:generate-schema": "auth generate --config src/auth.ts --adapter drizzle --dialect sqlite --output src/db/auth-schema.ts --yes",
     "auth:create-manager": "tsx scripts/create-local-account.ts manager",
-    "auth:create-user": "tsx scripts/create-local-account.ts user"
+    "auth:create-user": "tsx scripts/create-local-account.ts user",
+    "auth:reset-manager-password": "tsx scripts/reset-local-manager-password.ts",
+    "db:enrich-demo": "tsx scripts/enrich-demo-requests.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.25",

@@ -15,6 +15,20 @@
       "when": 1795021911509,
       "tag": "0001_special_quasar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795024443563,
+      "tag": "0002_sticky_gauntlet",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1795028104815,
+      "tag": "0003_broken_unus",
+      "breakpoints": true
     }
   ]
 }

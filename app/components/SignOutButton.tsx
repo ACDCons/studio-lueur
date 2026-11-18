@@ -7,7 +7,7 @@ const authClient = createAuthClient();
 export default function SignOutButton() {
   async function signOut() {
     await authClient.signOut();
-    window.location.assign("/connexion");
+    window.location.assign("/saucisse-connection");
   }
 
   return <button type="button" className="button-secondary" onClick={signOut}>Se déconnecter</button>;

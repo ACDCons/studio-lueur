@@ -18,6 +18,7 @@ Better Auth utilise `BETTER_AUTH_URL` et `BETTER_AUTH_SECRET`. Le fichier `.env.
 - `npm run auth:generate-schema` : régénérer le schéma Better Auth dans `src/db/auth-schema.ts` avec le CLI officiel.
 - `npm run auth:create-manager` : créer un compte gestionnaire local. La commande demande l’adresse e-mail et le nom, puis le CLI Better Auth demande le mot de passe sans l’ajouter aux arguments.
 - `npm run auth:create-user` : créer un compte standard local selon le même mode. Son rôle est fixé par la commande.
+- `npm run auth:reset-manager-password` : remplacer le mot de passe d’un compte gestionnaire existant. La commande demande l’e-mail puis saisit le nouveau mot de passe sans l’afficher ; elle passe par le hachage et l’adaptateur Better Auth, puis révoque les sessions précédentes.
 
 Les commandes de création chargent la configuration locale via `@next/env`, exigent `BETTER_AUTH_SECRET`, puis appellent le CLI Better Auth. Elles ne lisent pas ni n’affichent les mots de passe ; ne pas passer de mot de passe ou de rôle dans les arguments. Créer d’abord le gestionnaire, puis le compte standard. Aucune commande ne supprime ni ne remplace un compte existant.
 
@@ -51,3 +52,19 @@ La vérification en lecture seule après insertion a observé 24 contacts et 26 
 ## Limites
 
 Le bloc reste local et n’a pas été publié. `npx tsc --noEmit` a réussi ; le parcours d’authentification n’a pas été essayé dans un navigateur, aucun build Next ni aucune suite de tests n’ont été lancés. Les connexions réelles des identités visiteur/A/B restent à vérifier après création des comptes. La création d’une demande depuis le formulaire public n’exige volontairement pas de session.
+
+## Back office Studio Lueur
+
+- Connexion gestionnaire sur `/saucisse-connection` ; le champ accepte le nom `Antho` ou l’adresse e-mail Better Auth. L’inscription publique reste désactivée et le contrôle `admin` reste côté serveur dans le layout CRM et chaque action privée.
+- Better Auth accepte les deux origines locales `http://localhost:3000` et `http://127.0.0.1:3000`.
+- En développement Next.js, `.env.development.local` prend priorité sur `.env.local`. Le CLI de création de compte charge aussi explicitement l’environnement `development` pour utiliser la même clé que `npm run dev`.
+- Le mot de passe est saisi dans un champ masqué visuellement par des emojis saucisse, avec un bouton d’affichage. Il n’est pas stocké dans le code.
+- `/crm` est le tableau de bord ; `/crm/demandes` affiche la liste filtrable ; `/crm/[id]` affiche le projet, le suivi, le contact, le budget et les échanges.
+- Statuts des demandes : Nouveau, En Discussion, Acompte versé, Shooting proche, Retouche en cours, Livrée, Payée, Refusée et Annulée. Les motifs de refus autorisés sont Hors budget, Pas de réponse et Toxique.
+- Statuts des contacts : Lead, Client, KO, HS et Toxique. Un contact est indépendant de ses demandes.
+- La migration additive `drizzle/0002_sticky_gauntlet.sql` ajoute le statut contact, le budget en euros, le motif de refus et la table `echanges`. Elle conserve les anciens identifiants et champs. Les anciens statuts `Client` des demandes restent étiquetés `Client (historique)` et le contact associé devient `Client` ; `Perdu` devient `Refusée` sans motif inventé.
+- La migration additive `drizzle/0003_broken_unus.sql` ajoute la date facultative `date_shooting_validee`, sans rétro-remplir les demandes existantes. La liste permet de trier selon la date souhaitée ; la fiche affiche et modifie aussi la date validée.
+- `npm run db:enrich-demo` ajoute du contexte fictif et un budget aux cinq demandes de démonstration ciblées, sans remplacer le message d’origine. Il refuse d’agir si les enregistrements ne correspondent plus aux valeurs inspectées.
+- Le graphique par prix est un exemple fictif indépendant des budgets réellement enregistrés. Les demandes et statuts du CRM proviennent de la base locale.
+- Le compte gestionnaire n’a pas été créé par l’agent. Pour le créer, exécuter `npm run auth:create-manager`, saisir `Antho` et l’adresse fournie dans les invites, puis saisir le mot de passe dans l’invite masquée du CLI Better Auth. Ne pas ajouter le mot de passe à la commande.
+- La migration a été appliquée à `file:data/local.sqlite`. Aucun compte, tunnel ou déploiement n’a été créé. Aucun test ni parcours navigateur n’a été exécuté pour cette étape.

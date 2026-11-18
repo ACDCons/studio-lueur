@@ -34,13 +34,23 @@ export type EditValues = {
   id: string;
   type_seance: string;
   date_souhaitee: string;
+  date_shooting_validee: string;
   message: string;
   statut: string;
+  raison_refus: string;
+  budget_eur: string;
   note: string;
   prochaine_action: string;
 };
 
 export type EditField = keyof EditValues;
+
+export type ExchangeFormState = {
+  status: "idle" | "error" | "success";
+  message: string;
+  values: { demande_id: string; auteur: string; contenu: string };
+  errors: Partial<Record<"demande_id" | "auteur" | "contenu", string>>;
+};
 
 export type EditFormState = {
   status: "idle" | "error" | "success";

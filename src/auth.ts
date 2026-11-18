@@ -10,6 +10,7 @@ void ensureAuthDatabaseReady().catch(() => undefined);
 export const auth = betterAuth({
   appName: "Studio Lueur",
   baseURL: process.env.BETTER_AUTH_URL ?? "http://127.0.0.1:3000",
+  trustedOrigins: ["http://127.0.0.1:3000", "http://localhost:3000"],
   secret: process.env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(authDb, { provider: "sqlite" }),
   emailAndPassword: {

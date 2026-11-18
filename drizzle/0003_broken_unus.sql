@@ -1,0 +1,1 @@
+ALTER TABLE `demandes` ADD `date_shooting_validee` text;

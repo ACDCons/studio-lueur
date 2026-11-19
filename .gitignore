@@ -21,3 +21,8 @@ next-env.d.ts
 
 # Bases locales, journaux, sauvegardes et exports : pas dans Git
 /data/
+
+.vercel
+.env*
+!.env.example
+/token db.txt
